@@ -1,0 +1,7 @@
+{
+  "name": "VoiceForm Assist",
+  "description": "An accessibility-first, voice-guided form assistant for visually and motor-impaired users. Uses Gemini to interpret intent and normalize spoken answers into structured data.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

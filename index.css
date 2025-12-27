@@ -1,0 +1,25 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-black text-white font-mono antialiased selection:bg-yellow-400 selection:text-black;
+  }
+  
+  :focus-visible {
+    @apply outline-[4px] outline-yellow-400 outline-offset-4 !important;
+  }
+}
+
+/* Custom scrollbar for that industrial look */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-black;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-800 border-2 border-black hover:bg-zinc-700;
+}
