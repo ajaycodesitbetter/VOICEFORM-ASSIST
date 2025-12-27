@@ -353,28 +353,64 @@ const App: React.FC = () => {
 
   const startForm = async () => {
     sessionRef.current++;
-    
-    setAppState(prev => ({ 
-      ...prev, 
-      currentFieldIndex: 0, 
-      answers: {}, 
-      history: [], 
-      mode: 'busy', 
-      lastLog: 'Initializing...', 
-      pendingValue: null, 
-      awaitingConfirmation: false, 
-      interimTranscript: '' 
+
+    setAppState(prev => ({
+      ...prev,
+      currentFieldIndex: 0,
+      answers: {},
+      history: [],
+      mode: 'busy',
+      lastLog: 'Initializing...',
+      pendingValue: null,
+      awaitingConfirmation: false,
+      interimTranscript: ''
     } as AppState));
-    
+
     setShowSummary(false);
     const welcome = appState.language.startsWith('hi') ? "नमस्ते, शुरू करते हैं।" : "Welcome. Let's begin the form.";
-    
+
     const currentSessionId = sessionRef.current;
     await speechRef.current?.speak(welcome, appState.language, () => {
       if (sessionRef.current === currentSessionId) {
         setTimeout(() => handleNextStep(), 300);
       }
     });
+  };
+
+  const handleStopSession = () => {
+    if (!isSessionActive()) return;
+    if (!confirm("Quit session?")) return;
+
+    // Invalidate any in-flight async handlers
+    sessionRef.current++;
+    // Cancel speech + mic activity
+    speechRef.current?.cancel();
+
+    setShowSummary(false);
+    setAppState(prev => ({
+      ...prev,
+      mode: 'idle',
+      currentFieldIndex: 0,
+      answers: {},
+      history: [],
+      pendingValue: null,
+      interimTranscript: '',
+      awaitingConfirmation: false,
+      lastLog: 'Session stopped.',
+    } as AppState));
+  };
+
+  const handleRestartSession = () => {
+    if (!isSessionActive()) return;
+    if (!confirm("Restart?")) return;
+
+    // Invalidate current session + cancel audio
+    sessionRef.current++;
+    speechRef.current?.cancel();
+    setShowSummary(false);
+
+    // Start a fresh session
+    void startForm();
   };
 
   const copyToClipboard = (data: any) => {
@@ -544,8 +580,18 @@ const App: React.FC = () => {
           
           {isSessionActive() && (
             <div className="flex gap-4 shrink-0">
-              <button onClick={() => { if(confirm("Restart?")) startForm(); }} className="px-10 py-5 bg-zinc-800 text-white text-2xl font-black uppercase shadow-[6px_6px_0_#000000] border-2 border-zinc-700 hover:bg-zinc-700 transition-all">Restart</button>
-              <button onClick={() => { if(confirm("Quit session?")) setAppState(s => ({...s, mode: 'idle'})); }} className="px-10 py-5 bg-red-600 text-white text-2xl font-black uppercase shadow-[6px_6px_0_#000000] border-2 border-red-800 hover:bg-red-500 transition-all">Stop</button>
+              <button
+                onClick={handleRestartSession}
+                className="px-10 py-5 bg-zinc-800 text-white text-2xl font-black uppercase shadow-[6px_6px_0_#000000] border-2 border-zinc-700 hover:bg-zinc-700 transition-all"
+              >
+                Restart
+              </button>
+              <button
+                onClick={handleStopSession}
+                className="px-10 py-5 bg-red-600 text-white text-2xl font-black uppercase shadow-[6px_6px_0_#000000] border-2 border-red-800 hover:bg-red-500 transition-all"
+              >
+                Stop
+              </button>
             </div>
           )}
         </div>
